@@ -34,12 +34,27 @@ def inline_search(update: Update, context: CallbackContext):
     query = update.inline_query.query
     if not query:
         return
+    page = update.inline_query.offset
+    page = int(page) if page else 1
+    response = get_taxa(q=query, page=str(page), per_page=5)
+    results = response['results']
+    answers = [
+        InlineQueryResultArticle(
+            id=item['id'],
+            title=item['name'],
+            input_message_content=InputTextMessageContent(item['name'].title()),
+            description=item['rank'].title(),
+            thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
+        )
+        for item in results
+    ]
+    total_results = response['total_results']
+    next_page = page + 1 if page * 5 >= total_results else 0
     context.bot.answer_inline_query(
         update.inline_query.id,
-        get_inline_callable_results(query),
-        auto_pagination=True,
-        # current_offset=update.inline_query.offset,
-        # next_offset=update.inline_query.offset + 1,
+        answers,
+        current_offset=str(page),
+        next_offset=str(next_page) if next_page else '',
     )
 
 
