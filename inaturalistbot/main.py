@@ -21,7 +21,9 @@ def inline_search(update, context):
         InlineQueryResultArticle(
             id=item['id'],
             title=item['name'],
-            input_message_content=InputTextMessageContent(item['iconic_taxon_name'])
+            input_message_content=InputTextMessageContent(item['name'].title()),
+            description=item['rank'].title(),
+            thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
         )
         for item in results
     ]
