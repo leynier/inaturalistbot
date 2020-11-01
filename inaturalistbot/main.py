@@ -3,16 +3,20 @@ from os import getenv
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 
-def start(bot, update):
-    update.message.reply_text('Hello World!')
+def start(update, context):
+    chat_id = update.effective_chat.id
+    text = 'Hello World!'
+    context.bot.send_message(chat_id=chat_id, text=text)
 
 
-def echo(bot, update):
-    update.message.reply_text(update.message.text)
+def echo(update, context):
+    chat_id = update.effective_chat.id
+    text = update.message.text
+    context.bot.send_message(chat_id=chat_id, text=text)
 
 
-def error(bot, update, error):
-    logger.warning(f'Update {update} caused error {error}')
+def error(update, context):
+    logger.warning(f'Update {update} caused error {context.error}')
 
 
 if __name__ == '__main__':
