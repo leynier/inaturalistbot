@@ -21,8 +21,7 @@ from telegram.ext import (
 
 def start_help(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
-    text = 'To search a taxon use the inline mode, for this enter @inaturalistbot followed \
-        by the search and you will see the list of results for that search.'
+    text = 'To search a taxon use the inline mode, for this enter @inaturalistbot followed by the search and you will see the list of results for that search.'
     context.bot.send_message(chat_id=chat_id, text=text)
 
 
