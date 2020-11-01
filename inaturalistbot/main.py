@@ -40,9 +40,13 @@ def chosen_inline(update: Update, context: CallbackContext):
     if not id:
         return
     response = get_taxa_by_id(id)
-    name = response.get('name')
-    rank = response.get('rank')
-    photo = response['default_photo'].get('url') if 'default_photo' in response else None
+    results = response.get('results')
+    if not results:
+        return
+    item = results[0]
+    name = item.get('name')
+    rank = item.get('rank')
+    photo = item['default_photo'].get('url') if 'default_photo' in item else None
     if name:
         context.bot.send_message(chat_id=update.effective_chat.id, text=name)
     if rank:
