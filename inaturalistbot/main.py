@@ -53,7 +53,6 @@ def inline_search(update: Update, context: CallbackContext):
     context.bot.answer_inline_query(
         update.inline_query.id,
         answers,
-        current_offset=str(page),
         next_offset=str(next_page) if next_page else '',
     )
 
