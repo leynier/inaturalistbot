@@ -2,7 +2,7 @@ from logging import basicConfig, getLogger, INFO, Logger
 from os import getenv
 from typing import Callable, List
 from pyinaturalist.node_api import get_taxa, get_taxa_by_id
-from telegram import InlineQueryResult, InlineQueryResultArticle, InputTextMessageContent, Update
+from telegram import InlineQueryResult, InlineQueryResultArticle, InputTextMessageContent, Update, InlineQueryResultPhoto, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, InlineQueryHandler, CallbackContext, ChosenInlineResultHandler
 
 
@@ -22,12 +22,15 @@ def inline_search(update: Update, context: CallbackContext):
         results = response['results']
         if results:
             answers = [
-                InlineQueryResultArticle(
+                # InlineQueryResultArticle(
+                InlineQueryResultPhoto(
                     id=item['id'],
                     title=item['name'],
                     input_message_content=InputTextMessageContent(item['name'].title()),
                     description=item['rank'].title(),
-                    thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
+                    thumb_url=item['default_photo']['url'] if 'default_photo' in item else None,
+                    photo_url=item['default_photo']['url'] if 'default_photo' in item else None,
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text='See more', callback_data=item['id'])]])
                 )
                 for item in results
             ]
@@ -36,33 +39,33 @@ def inline_search(update: Update, context: CallbackContext):
     update.inline_query.answer(results, auto_pagination=True, cache_time=1)
 
 
-def chosen_inline(update: Update, context: CallbackContext):
-    logger.info(f'Chosen Inline: \n update: {update} \n context: {context}')
-    identifier = update.chosen_inline_result.result_id
-    if not identifier:
-        logger.warning('identifier is None')
-        return
-    response = get_taxa_by_id(taxon_id=identifier)
-    results = response.get('results')
-    if not results:
-        logger.warning('results is None')
-        return
-    item = results[0]
-    name = item.get('name')
-    rank = item.get('rank')
-    photo = item['default_photo'].get('url') if 'default_photo' in item else None
-    if name:
-        context.bot.send_message(chat_id=update.message.chat.id, text=name)
-    else:
-        logger.warning('name is None')
-    if rank:
-        context.bot.send_message(chat_id=update.message.chat.id, text=rank)
-    else:
-        logger.warning('rank is None')
-    if photo:
-        context.bot.send_photo(chat_id=update.message.chat.id, photo=photo)
-    else:
-        logger.warning('photo is None')
+# def chosen_inline(update: Update, context: CallbackContext):
+#     logger.info(f'Chosen Inline: \n update: {update} \n context: {context}')
+#     identifier = update.chosen_inline_result.result_id
+#     if not identifier:
+#         logger.warning('identifier is None')
+#         return
+#     response = get_taxa_by_id(taxon_id=identifier)
+#     results = response.get('results')
+#     if not results:
+#         logger.warning('results is None')
+#         return
+#     item = results[0]
+#     name = item.get('name')
+#     rank = item.get('rank')
+#     photo = item['default_photo'].get('url') if 'default_photo' in item else None
+#     if name:
+#         context.bot.send_message(chat_id=update.message.chat.id, text=name)
+#     else:
+#         logger.warning('name is None')
+#     if rank:
+#         context.bot.send_message(chat_id=update.message.chat.id, text=rank)
+#     else:
+#         logger.warning('rank is None')
+#     if photo:
+#         context.bot.send_photo(chat_id=update.message.chat.id, photo=photo)
+#     else:
+#         logger.warning('photo is None')
 
 
 # def error(update: Update, context: CallbackContext):
@@ -82,7 +85,7 @@ if __name__ == '__main__':
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(InlineQueryHandler(inline_search))
-    dp.add_handler(ChosenInlineResultHandler(chosen_inline))
+    # dp.add_handler(ChosenInlineResultHandler(chosen_inline))
     # dp.add_error_handler(error)
 
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
