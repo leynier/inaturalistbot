@@ -4,11 +4,11 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 
 def start(bot, update):
-    update.effective_message.reply_text('Hello World!')
+    update.message.reply_text('Hello World!')
 
 
 def echo(bot, update):
-    update.effective_message.reply_text(update.effective_message.text)
+    update.message.reply_text(update.message.text)
 
 
 def error(bot, update, error):
