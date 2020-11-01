@@ -1,4 +1,4 @@
-from logging import basicConfig, getLogger, INFO, Logger
+from logging import basicConfig, getLogger, INFO
 from os import getenv
 from typing import Callable, List
 from pyinaturalist.node_api import get_taxa, get_taxa_by_id
@@ -9,7 +9,6 @@ from telegram import (
     Update,
     InlineKeyboardMarkup,
     InlineKeyboardButton,
-    InputMediaPhoto,
 )
 from telegram.ext import (
     Updater,
@@ -72,6 +71,7 @@ def callback_query(update: Update, context: CallbackContext):
     photo_url = item['default_photo'].get('url') if 'default_photo' in item else None
     wikipedia_url = item.get('wikipedia_url')
     wikipedia_summary = item.get('wikipedia_summary')
+    wikipedia_summary = wikipedia_summary.replace('>', '\>')
     text = f"""
     *{name}*
 
