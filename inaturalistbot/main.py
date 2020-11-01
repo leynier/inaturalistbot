@@ -1,9 +1,9 @@
-from logging import basicConfig, getLogger, INFO
+from logging import basicConfig, getLogger, INFO, Logger
 from os import getenv
 from typing import Callable, List
-from pyinaturalist.node_api import get_taxa
+from pyinaturalist.node_api import get_taxa, get_taxa_by_id
 from telegram import InlineQueryResult, InlineQueryResultArticle, InputTextMessageContent, Update
-from telegram.ext import Updater, CommandHandler, InlineQueryHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, InlineQueryHandler, CallbackContext, ChosenInlineResultHandler
 
 
 def start(update: Update, context: CallbackContext):
@@ -17,8 +17,8 @@ def inline_search(update: Update, context: CallbackContext):
     query = update.inline_query.query
     if not query:
         return
-    def results(page: int) -> Callable[[int], List[InlineQueryResultArticle]]:
-        response = get_taxa(q=query, page=str(page + 1), per_page=15)
+    def results(page: int) -> Callable[[int], List[InlineQueryResult]]:
+        response = get_taxa(q=query, page=str(page + 1), per_page=10)
         results = response['results']
         answers = [
             InlineQueryResultArticle(
@@ -32,6 +32,23 @@ def inline_search(update: Update, context: CallbackContext):
         ]
         return answers if answers else None
     update.inline_query.answer(results, auto_pagination=True, cache_time=1)
+
+
+def chosen_inline(update: Update, context: CallbackContext):
+    logger.info(update)
+    id = update.chosen_inline_result.inline_message_id
+    if not id:
+        return
+    response = get_taxa_by_id(id)
+    name = response.get('name')
+    rank = response.get('rank')
+    photo = response['default_photo'].get('url') if 'default_photo' in response else None
+    if name:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=name)
+    if rank:
+        context.bot.send_message(chat_id=update.effective_chat.id, text=rank)
+    if photo:
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
 
 
 # def error(update: Update, context: CallbackContext):
@@ -51,6 +68,7 @@ if __name__ == '__main__':
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(InlineQueryHandler(inline_search))
+    dp.add_handler(ChosenInlineResultHandler(chosen_inline))
     # dp.add_error_handler(error)
 
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
