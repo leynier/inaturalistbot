@@ -77,7 +77,7 @@ def callback_query(update: Update, context: CallbackContext):
     # else:
     #     logger.warning('rank is None')
     if photo:
-        query.edit_message_media(media=InputMediaPhoto(photo=photo))
+        query.edit_message_media(media=InputMediaPhoto(media=photo))
     else:
         logger.warning('photo is None')
 
