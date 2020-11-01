@@ -17,7 +17,7 @@ def inline_search(update: Update, context: CallbackContext):
     query = update.inline_query.query
     if not query:
         return
-    def results(page: int) -> Callable([int], List[InlineQueryResultArticle]):
+    def results(page: int) -> Callable[[int], List[InlineQueryResultArticle]]:
         response = get_taxa(q=query, page=str(page + 1), per_page=15)
         results = response['results']
         answers = [
