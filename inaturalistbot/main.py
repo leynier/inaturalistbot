@@ -20,17 +20,19 @@ def inline_search(update: Update, context: CallbackContext):
     def results(page: int) -> Callable[[int], List[InlineQueryResult]]:
         response = get_taxa(q=query, page=str(page + 1), per_page=10)
         results = response['results']
-        answers = [
-            InlineQueryResultArticle(
-                id=item['id'],
-                title=item['name'],
-                input_message_content=InputTextMessageContent(item['name'].title()),
-                description=item['rank'].title(),
-                thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
-            )
-            for item in results
-        ]
-        return answers if answers else None
+        if results:
+            answers = [
+                InlineQueryResultArticle(
+                    id=item['id'],
+                    title=item['name'],
+                    input_message_content=InputTextMessageContent(item['name'].title()),
+                    description=item['rank'].title(),
+                    thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
+                )
+                for item in results
+            ]
+            return answers if answers else None
+        return None
     update.inline_query.answer(results, auto_pagination=True, cache_time=1)
 
 
