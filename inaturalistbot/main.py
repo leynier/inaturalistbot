@@ -71,18 +71,18 @@ def callback_query(update: Update, context: CallbackContext):
     photo_url = item['default_photo'].get('url') if 'default_photo' in item else None
     wikipedia_url = item.get('wikipedia_url')
     wikipedia_summary = item.get('wikipedia_summary')
-    wikipedia_summary = wikipedia_summary.replace('>', '\>')
+    # wikipedia_summary = wikipedia_summary.replace('>', '\>')
     text = f"""
-    *{name}*
+    <strong>{name}</strong>
 
     Rank: {rank}
 
     Wikipedia Summary: {wikipedia_summary}
 
-    Photo: [Link]({photo_url})
-    Wikipedia: [Link]({wikipedia_url})
+    Photo: <a href="{photo_url}">Link</a>
+    Wikipedia: <a href="{wikipedia_url}">Link</a>
     """
-    query.edit_message_text(text=text, parse_mode='MarkdownV2')
+    query.edit_message_text(text=text, parse_mode='HTML')
 
 
 # def error(update: Update, context: CallbackContext):
