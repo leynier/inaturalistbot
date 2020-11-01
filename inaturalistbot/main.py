@@ -1,36 +1,49 @@
 from logging import basicConfig, getLogger, INFO
 from os import getenv
+from typing import Callable, List
 from pyinaturalist.node_api import get_taxa
-from telegram import InlineQueryResultArticle, InputTextMessageContent
-from telegram.ext import Updater, CommandHandler, InlineQueryHandler, MessageHandler, Filters
+from telegram import InlineQueryResult, InlineQueryResultArticle, InputTextMessageContent, Update
+from telegram.ext import Updater, CommandHandler, InlineQueryHandler, MessageHandler, Filters, CallbackContext
 
 
-def start(update, context):
+def start(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     text = 'Hello World!'
     context.bot.send_message(chat_id=chat_id, text=text)
 
 
-def inline_search(update, context):
+def get_inline_callable_results(query: str, per_page: int = 5) -> Callable[[int], List[InlineQueryResult]]:
+    def result(page: int) -> List[InlineQueryResult]:
+        response = get_taxa(q=query, page=page+1, per_page=per_page)
+        results = response['results']
+        answers = [
+            InlineQueryResultArticle(
+                id=item['id'],
+                title=item['name'],
+                input_message_content=InputTextMessageContent(item['name'].title()),
+                description=item['rank'].title(),
+                thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
+            )
+            for item in results
+        ]
+        return answers if answers else None
+    return result
+
+
+def inline_search(update: Update, context: CallbackContext):
     query = update.inline_query.query
     if not query:
         return
-    response = get_taxa(q=query)
-    results = response['results']
-    answers = [
-        InlineQueryResultArticle(
-            id=item['id'],
-            title=item['name'],
-            input_message_content=InputTextMessageContent(item['name'].title()),
-            description=item['rank'].title(),
-            thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
-        )
-        for item in results
-    ]
-    context.bot.answer_inline_query(update.inline_query.id, answers)
+    context.bot.answer_inline_query(
+        update.inline_query.id,
+        get_inline_callable_results(query),
+        auto_pagination=True,
+        # current_offset=update.inline_query.offset,
+        # next_offset=update.inline_query.offset + 1,
+    )
 
 
-def error(update, context):
+def error(update: Update, context: CallbackContext):
     logger.warning(f'Update {update} caused error {context.error}')
 
 
