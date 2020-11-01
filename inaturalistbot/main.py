@@ -19,9 +19,9 @@ def inline_search(update, context):
     results = response['results']
     answers = [
         InlineQueryResultArticle(
-            id=query.upper(),
+            id=item['id'],
             title=item['name'],
-            input_message_content=InputTextMessageContent(item['preferred_common_name'])
+            input_message_content=InputTextMessageContent(item['iconic_taxon_name'])
         )
         for item in results
     ]
