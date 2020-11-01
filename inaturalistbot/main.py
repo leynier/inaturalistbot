@@ -34,8 +34,8 @@ def inline_search(update: Update, context: CallbackContext):
     update.inline_query.answer(results, auto_pagination=True, cache_time=1)
 
 
-def error(update: Update, context: CallbackContext):
-    logger.warning(f'Update {update} caused error {context.error}')
+# def error(update: Update, context: CallbackContext):
+#     logger.warning(f'Update {update} caused error {context.error}')
 
 
 if __name__ == '__main__':
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(InlineQueryHandler(inline_search))
-    dp.add_error_handler(error)
+    # dp.add_error_handler(error)
 
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
     updater.bot.setWebhook('https://{}.herokuapp.com/{}'.format(NAME, TOKEN))
