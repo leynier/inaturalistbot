@@ -17,28 +17,21 @@ def inline_search(update: Update, context: CallbackContext):
     query = update.inline_query.query
     if not query:
         return
-    page = update.inline_query.offset
-    page = int(page) if page else 1
-    response = get_taxa(q=query, page=str(page), per_page=15)
-    results = response['results']
-    answers = [
-        InlineQueryResultArticle(
-            id=item['id'],
-            title=item['name'],
-            input_message_content=InputTextMessageContent(item['name'].title()),
-            description=item['rank'].title(),
-            thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
-        )
-        for item in results
-    ]
-    total_results = response['total_results']
-    next_page = page + 1 if page * 5 >= total_results else 0
-    update.inline_query.answer(answers, next_offset=str(next_page) if next_page else '', cache_time=1)
-    # context.bot.answer_inline_query(
-    #     update.inline_query.id,
-    #     answers,
-    #     next_offset=str(next_page) if next_page else '',
-    # )
+    def results(page: int) -> Callable([int], List[InlineQueryResultArticle]):
+        response = get_taxa(q=query, page=str(page + 1), per_page=15)
+        results = response['results']
+        answers = [
+            InlineQueryResultArticle(
+                id=item['id'],
+                title=item['name'],
+                input_message_content=InputTextMessageContent(item['name'].title()),
+                description=item['rank'].title(),
+                thumb_url=item['default_photo']['url'] if 'default_photo' in item else None
+            )
+            for item in results
+        ]
+        return answers if answers else None
+    update.inline_query.answer(results, auto_pagination=True, cache_time=1)
 
 
 def error(update: Update, context: CallbackContext):
