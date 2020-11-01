@@ -67,19 +67,18 @@ def callback_query(update: Update, context: CallbackContext):
     name = item.get('name')
     rank = item.get('rank')
     photo = item['default_photo'].get('url') if 'default_photo' in item else None
-
-    # if name:
-    #     context.bot.send_message(chat_id=update.message.chat.id, text=name)
-    # else:
-    #     logger.warning('name is None')
-    # if rank:
-    #     context.bot.send_message(chat_id=update.message.chat.id, text=rank)
-    # else:
-    #     logger.warning('rank is None')
-    if photo:
-        query.edit_message_media(media=InputMediaPhoto(media=photo))
+    if name:
+        query.edit_message_text(text=name)
+        if rank:
+            context.bot.send_message(chat_id=query.chat_instance, text=rank)
+        else:
+            logger.warning('rank is None')
+        # if photo:
+            # context.bot.send_photo(chat_id=query.chat_instance, photo=photo)
+        # else:
+            # logger.warning('photo is None')
     else:
-        logger.warning('photo is None')
+        logger.warning('name is None')
 
 
 # def error(update: Update, context: CallbackContext):
