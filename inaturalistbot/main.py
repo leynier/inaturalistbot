@@ -13,7 +13,7 @@ def start(update: Update, context: CallbackContext):
 
 
 def inline_search(update: Update, context: CallbackContext):
-    logger.info(f'inline_search - {update}')
+    logger.info(f'Inline Search: \n update: {update} \n context: {context}')
     query = update.inline_query.query
     if not query:
         return
@@ -37,7 +37,7 @@ def inline_search(update: Update, context: CallbackContext):
 
 
 def chosen_inline(update: Update, context: CallbackContext):
-    logger.info(f'chosen_inline - {update}')
+    logger.info(f'Chosen Inline: \n update: {update} \n context: {context}')
     identifier = update.chosen_inline_result.result_id
     if not identifier:
         logger.warning('identifier is None')
