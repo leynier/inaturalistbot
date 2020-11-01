@@ -52,15 +52,15 @@ def chosen_inline(update: Update, context: CallbackContext):
     rank = item.get('rank')
     photo = item['default_photo'].get('url') if 'default_photo' in item else None
     if name:
-        context.bot.send_message(chat_id=update.effective_chat.id, text=name)
+        context.bot.send_message(chat_id=update.message.chat.id, text=name)
     else:
         logger.warning('name is None')
     if rank:
-        context.bot.send_message(chat_id=update.effective_chat.id, text=rank)
+        context.bot.send_message(chat_id=update.message.chat.id, text=rank)
     else:
         logger.warning('rank is None')
     if photo:
-        context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
+        context.bot.send_photo(chat_id=update.message.chat.id, photo=photo)
     else:
         logger.warning('photo is None')
 
