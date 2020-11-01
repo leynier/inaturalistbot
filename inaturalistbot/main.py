@@ -23,7 +23,7 @@ def inline_search(update, context):
             title=item['name'],
             input_message_content=InputTextMessageContent(item['preferred_common_name'])
         )
-        for item in response['results']
+        for item in results
     ]
     context.bot.answer_inline_query(update.inline_query.id, answers)
 
