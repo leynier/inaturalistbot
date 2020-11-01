@@ -39,7 +39,10 @@ def inline_search(update: Update, context: CallbackContext):
                 InlineQueryResultArticle(
                     id=item['id'],
                     title=item['name'],
-                    input_message_content=InputTextMessageContent(item['name'].title()),
+                    input_message_content=InputTextMessageContent(
+                        f'*{item["name"].title()}*',
+                        parse_mode='MarkdownV2'
+                    ),
                     description=item['rank'].title(),
                     thumb_url=item['default_photo']['url'] if 'default_photo' in item else None,
                     reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text='See more', callback_data=item['id'])]])
@@ -66,19 +69,20 @@ def callback_query(update: Update, context: CallbackContext):
     item = results[0]
     name = item.get('name')
     rank = item.get('rank')
-    photo = item['default_photo'].get('url') if 'default_photo' in item else None
-    if name:
-        query.edit_message_text(text=name)
-        if rank:
-            context.bot.send_message(chat_id=query.chat_instance, text=rank)
-        else:
-            logger.warning('rank is None')
-        # if photo:
-            # context.bot.send_photo(chat_id=query.chat_instance, photo=photo)
-        # else:
-            # logger.warning('photo is None')
-    else:
-        logger.warning('name is None')
+    photo_url = item['default_photo'].get('url') if 'default_photo' in item else None
+    wikipedia_url = item.get('wikipedia_url')
+    wikipedia_summary = item.get('wikipedia_summary')
+    text = f"""
+    *{name}*
+
+    Rank: {rank}
+
+    Wikipedia Summary: {wikipedia_summary}
+
+    Photo: [Link]({photo_url})
+    Wikipedia: [Link]({wikipedia_url})
+    """
+    query.edit_message_text(text=text, parse_mode='MarkdownV2')
 
 
 # def error(update: Update, context: CallbackContext):
