@@ -33,7 +33,7 @@ def inline_search(update: Update, context: CallbackContext):
     ]
     total_results = response['total_results']
     next_page = page + 1 if page * 5 >= total_results else 0
-    update.inline_query.answer(answers, next_offset=str(next_page) if next_page else '')
+    update.inline_query.answer(answers, next_offset=str(next_page) if next_page else '', cache_time=1)
     # context.bot.answer_inline_query(
     #     update.inline_query.id,
     #     answers,
