@@ -13,7 +13,7 @@ def start(update: Update, context: CallbackContext):
 
 
 def inline_search(update: Update, context: CallbackContext):
-    logger.info(update)
+    logger.info(f'inline_search - {update}')
     query = update.inline_query.query
     if not query:
         return
@@ -35,13 +35,15 @@ def inline_search(update: Update, context: CallbackContext):
 
 
 def chosen_inline(update: Update, context: CallbackContext):
-    logger.info(update)
-    id = update.chosen_inline_result.inline_message_id
-    if not id:
+    logger.info(f'chosen_inline - {update}')
+    identifier = update.chosen_inline_result.inline_message_id
+    if not identifier:
+        logger.warning('identifier is None')
         return
-    response = get_taxa_by_id(id)
+    response = get_taxa_by_id(taxon_id=identifier)
     results = response.get('results')
     if not results:
+        logger.warning('results is None')
         return
     item = results[0]
     name = item.get('name')
@@ -49,10 +51,16 @@ def chosen_inline(update: Update, context: CallbackContext):
     photo = item['default_photo'].get('url') if 'default_photo' in item else None
     if name:
         context.bot.send_message(chat_id=update.effective_chat.id, text=name)
+    else:
+        logger.warning('name is None')
     if rank:
         context.bot.send_message(chat_id=update.effective_chat.id, text=rank)
+    else:
+        logger.warning('rank is None')
     if photo:
         context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo)
+    else:
+        logger.warning('photo is None')
 
 
 # def error(update: Update, context: CallbackContext):
