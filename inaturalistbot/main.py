@@ -38,7 +38,7 @@ def inline_search(update: Update, context: CallbackContext):
 
 def chosen_inline(update: Update, context: CallbackContext):
     logger.info(f'chosen_inline - {update}')
-    identifier = update.chosen_inline_result.inline_message_id
+    identifier = update.chosen_inline_result.result_id
     if not identifier:
         logger.warning('identifier is None')
         return
