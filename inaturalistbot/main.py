@@ -19,9 +19,10 @@ from telegram.ext import (
 )
 
 
-def start(update: Update, context: CallbackContext):
+def start_help(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
-    text = 'Hello World!'
+    text = 'To search a taxon use the inline mode, for this enter @inaturalistbot followed \
+        by the search and you will see the list of results for that search.'
     context.bot.send_message(chat_id=chat_id, text=text)
 
 
@@ -54,7 +55,7 @@ def inline_search(update: Update, context: CallbackContext):
 
 
 def callback_query(update: Update, context: CallbackContext):
-    logger.info(f'Chosen Inline: {update}')
+    logger.info(f'Callback Query: {update}')
     query = update.callback_query
     if not query or not query.data:
         logger.warning('query or query.data is None')
@@ -74,9 +75,9 @@ def callback_query(update: Update, context: CallbackContext):
     if name:
         text = f'<strong>{name}</strong>\n\n'
         if rank:
-            text += f'Rank: {rank}\n\n'
+            text += f'<strong>Rank:</strong> {rank}\n\n'
         if wikipedia_summary:
-            text += f'Wikipedia Summary: {wikipedia_summary}\n\n'
+            text += f'{wikipedia_summary}\n\n'
         if photo_url:
             text += f'Photo: <a href="{photo_url}">Link</a>\n'
         if wikipedia_url:
@@ -84,8 +85,8 @@ def callback_query(update: Update, context: CallbackContext):
         query.edit_message_text(text=text, parse_mode='HTML')
 
 
-# def error(update: Update, context: CallbackContext):
-#     logger.warning(f'Update {update} caused error {context.error}')
+def error(update: Update, context: CallbackContext):
+    logger.error(f'Update {update} caused error {context.error}')
 
 
 if __name__ == '__main__':
@@ -99,10 +100,11 @@ if __name__ == '__main__':
     updater = Updater(TOKEN)
     dp = updater.dispatcher
 
-    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CommandHandler('start', start_help))
+    dp.add_handler(CommandHandler('help', start_help))
     dp.add_handler(InlineQueryHandler(inline_search))
     dp.add_handler(CallbackQueryHandler(callback_query))
-    # dp.add_error_handler(error)
+    dp.add_error_handler(error)
 
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
     updater.bot.setWebhook('https://{}.herokuapp.com/{}'.format(NAME, TOKEN))
