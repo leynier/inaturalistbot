@@ -1,6 +1,8 @@
 from logging import basicConfig, getLogger, INFO
 from os import getenv
 from typing import Callable, List, Optional
+import motor
+from motor.motor_asyncio import AsyncIOMotorClient
 from odmantic import AIOEngine, Field, Model
 from pyinaturalist.node_api import get_taxa, get_taxa_by_id
 from telegram import (
@@ -107,7 +109,8 @@ if __name__ == '__main__':
     basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=INFO)
     logger = getLogger(__name__)
 
-    engine = AIOEngine(database=getenv('DATABASE'))
+    motor_client = AsyncIOMotorClient(host=getenv('DATABASE'))
+    engine = AIOEngine(motor_client=motor_client, database=getenv('NAME'))
 
     instances = [
         Publisher(name="HarperCollins", founded=1989, location="US"),
