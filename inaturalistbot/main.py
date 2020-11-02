@@ -41,6 +41,7 @@ class User(BaseModel):
 
 class Log(BaseModel):
     method: str
+    param: str
     user: User
 
 
@@ -53,15 +54,16 @@ def start_help(update: Update, context: CallbackContext):
 def inline_search(update: Update, context: CallbackContext):
     logger.info(f'Inline Search: {update}')
 
-    # Loggin to Database
-    user = update.inline_query.from_user
-    user_model = User.from_orm(user)
-    log = Log(method='inline_search', user=user_model)
-    db.logs.insert_one(log.dict())
-
     query = update.inline_query.query
     if not query:
         return
+
+    # Loggin to Database
+    user = update.inline_query.from_user
+    user_model = User.from_orm(user)
+    log = Log(method='inline_search', user=user_model, param=query)
+    db.logs.insert_one(log.dict())
+
     def results(page: int) -> Callable[[int], List[InlineQueryResult]]:
         response = get_taxa(q=query, page=str(page + 1), per_page=10)
         results = response['results']
@@ -88,16 +90,11 @@ def inline_search(update: Update, context: CallbackContext):
 def callback_query(update: Update, context: CallbackContext):
     logger.info(f'Callback Query: {update}')
     
-    # Loggin to Database
-    user = update.callback_query.from_user
-    user_model = User.from_orm(user)
-    log = Log(method='callback_query', user=user_model)
-    db.logs.insert_one(log.dict())
-
     query = update.callback_query
     if not query or not query.data:
         logger.warning('query or query.data is None')
         return
+
     identifier = query.data
     response = get_taxa_by_id(taxon_id=identifier)
     results = response.get('results')
@@ -111,6 +108,12 @@ def callback_query(update: Update, context: CallbackContext):
     wikipedia_url = item.get('wikipedia_url')
     wikipedia_summary = item.get('wikipedia_summary')
     if name:
+        # Loggin to Database
+        user = update.callback_query.from_user
+        user_model = User.from_orm(user)
+        log = Log(method='callback_query', user=user_model, param=name)
+        db.logs.insert_one(log.dict())
+
         text = f'<strong>{name}</strong>\n\n'
         if rank:
             text += f'<strong>Rank:</strong> {rank}\n\n'
@@ -145,7 +148,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler('help', start_help))
     dp.add_handler(InlineQueryHandler(inline_search))
     dp.add_handler(CallbackQueryHandler(callback_query))
-    # dp.add_error_handler(error)
+    dp.add_error_handler(error)
 
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
     updater.bot.setWebhook('https://{}.herokuapp.com/{}'.format(NAME, TOKEN))
