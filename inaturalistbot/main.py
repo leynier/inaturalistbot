@@ -1,6 +1,7 @@
 from logging import basicConfig, getLogger, INFO
 from os import getenv
-from typing import Callable, List
+from typing import Callable, List, Optional
+from odmantic import AIOEngine, Field, Model
 from pyinaturalist.node_api import get_taxa, get_taxa_by_id
 from telegram import (
     InlineQueryResult,
@@ -17,6 +18,16 @@ from telegram.ext import (
     CallbackContext,
     CallbackQueryHandler,
 )
+
+
+global engine
+global logger
+
+
+class Publisher(Model):
+    name: str
+    founded: int = Field(ge=1440)
+    location: Optional[str] = None
 
 
 def start_help(update: Update, context: CallbackContext):
@@ -95,6 +106,16 @@ if __name__ == '__main__':
 
     basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=INFO)
     logger = getLogger(__name__)
+
+    engine = AIOEngine(database=getenv('DATABASE'))
+
+    instances = [
+        Publisher(name="HarperCollins", founded=1989, location="US"),
+        Publisher(name="Hachette Livre", founded=1826, location="FR"),
+        Publisher(name="Lulu", founded=2002)
+    ]
+
+    engine.save_all(instances)
 
     updater = Updater(TOKEN)
     dp = updater.dispatcher
