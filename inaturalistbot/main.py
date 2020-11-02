@@ -1,10 +1,9 @@
 from logging import basicConfig, getLogger, INFO
 from os import getenv
 from typing import Callable, List, Optional
-import motor
-from motor.motor_asyncio import AsyncIOMotorClient
-from odmantic import AIOEngine, Field, Model
+from pydantic import BaseModel
 from pyinaturalist.node_api import get_taxa, get_taxa_by_id
+from pymongo import MongoClient
 from telegram import (
     InlineQueryResult,
     InlineQueryResultArticle,
@@ -22,10 +21,24 @@ from telegram.ext import (
 )
 
 
-class Publisher(Model):
-    name: str
-    founded: int = Field(ge=1440)
-    location: Optional[str] = None
+global logger
+global db
+
+class User(BaseModel):
+    id: int
+    is_bot: bool
+    first_name: str
+    last_name: str
+    username: Optional[str] = None
+    language_code: Optional[str] = None
+    can_join_groups: Optional[bool] = None
+    can_read_all_group_messages: Optional[bool] = None
+    supports_inline_queries: Optional[bool] = None
+
+
+class Log(BaseModel):
+    method: str
+    user: User
 
 
 def start_help(update: Update, context: CallbackContext):
@@ -36,6 +49,13 @@ def start_help(update: Update, context: CallbackContext):
 
 def inline_search(update: Update, context: CallbackContext):
     logger.info(f'Inline Search: {update}')
+
+    # Loggin to Database
+    user_raw = update.inline_query.from_user
+    user = User.parse_raw(user_raw)
+    log = Log(method='inline_search', user=user)
+    db.logs.insert_one(log.dict()) 
+
     query = update.inline_query.query
     if not query:
         return
@@ -64,6 +84,13 @@ def inline_search(update: Update, context: CallbackContext):
 
 def callback_query(update: Update, context: CallbackContext):
     logger.info(f'Callback Query: {update}')
+    
+    # Loggin to Database
+    user_raw = update.callback_query.from_user
+    user = User.parse_raw(user_raw)
+    log = Log(method='callback_query', user=user)
+    db.logs.insert_one(log.dict()) 
+
     query = update.callback_query
     if not query or not query.data:
         logger.warning('query or query.data is None')
@@ -97,10 +124,7 @@ def error(update: Update, context: CallbackContext):
     logger.error(f'Update {update} caused error {context.error}')
 
 
-async def main():
-    global engine
-    global logger
-
+if __name__ == '__main__':
     TOKEN = getenv('TOKEN')
     NAME = getenv('NAME')
     PORT = getenv('PORT')
@@ -108,16 +132,8 @@ async def main():
     basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=INFO)
     logger = getLogger(__name__)
 
-    motor_client = AsyncIOMotorClient(host=getenv('DATABASE'))
-    engine = AIOEngine(motor_client=motor_client, database=getenv('NAME'))
-
-    instances = [
-        Publisher(name="HarperCollins", founded=1989, location="US"),
-        Publisher(name="Hachette Livre", founded=1826, location="FR"),
-        Publisher(name="Lulu", founded=2002)
-    ]
-
-    await engine.save_all(instances)
+    client = MongoClient(getenv('DATABASE'))
+    db = client[getenv('NAME')]
 
     updater = Updater(TOKEN)
     dp = updater.dispatcher
@@ -131,6 +147,3 @@ async def main():
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
     updater.bot.setWebhook('https://{}.herokuapp.com/{}'.format(NAME, TOKEN))
     updater.idle()
-
-if __name__ == '__main__':
-    main()
