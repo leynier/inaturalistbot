@@ -10,6 +10,7 @@ python = "^3.7"
 python-telegram-bot = "^13.0"
 pyinaturalist = "^0.10.0"
 odmantic = "^0.2.1"
+dnspython = "^2.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
