@@ -22,10 +22,6 @@ from telegram.ext import (
 )
 
 
-global engine
-global logger
-
-
 class Publisher(Model):
     name: str
     founded: int = Field(ge=1440)
@@ -101,7 +97,10 @@ def error(update: Update, context: CallbackContext):
     logger.error(f'Update {update} caused error {context.error}')
 
 
-if __name__ == '__main__':
+async def main():
+    global engine
+    global logger
+
     TOKEN = getenv('TOKEN')
     NAME = getenv('NAME')
     PORT = getenv('PORT')
@@ -118,7 +117,7 @@ if __name__ == '__main__':
         Publisher(name="Lulu", founded=2002)
     ]
 
-    engine.save_all(instances)
+    await engine.save_all(instances)
 
     updater = Updater(TOKEN)
     dp = updater.dispatcher
@@ -132,3 +131,6 @@ if __name__ == '__main__':
     updater.start_webhook(listen='0.0.0.0', port=int(PORT), url_path=TOKEN)
     updater.bot.setWebhook('https://{}.herokuapp.com/{}'.format(NAME, TOKEN))
     updater.idle()
+
+if __name__ == '__main__':
+    main()
