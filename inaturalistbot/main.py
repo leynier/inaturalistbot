@@ -35,6 +35,9 @@ class User(BaseModel):
     can_read_all_group_messages: Optional[bool] = None
     supports_inline_queries: Optional[bool] = None
 
+    class Config:
+        orm_mode = True
+
 
 class Log(BaseModel):
     method: str
@@ -52,7 +55,7 @@ def inline_search(update: Update, context: CallbackContext):
 
     # Loggin to Database
     user = update.inline_query.from_user
-    user_model = User.parse_raw(user.to_dict())
+    user_model = User.from_orm(user)
     log = Log(method='inline_search', user=user_model)
     db.logs.insert_one(log.dict())
 
@@ -87,7 +90,7 @@ def callback_query(update: Update, context: CallbackContext):
     
     # Loggin to Database
     user = update.callback_query.from_user
-    user_model = User.parse_raw(user.to_dict())
+    user_model = User.from_orm(user)
     log = Log(method='callback_query', user=user_model)
     db.logs.insert_one(log.dict())
 
