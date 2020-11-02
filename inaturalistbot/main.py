@@ -51,10 +51,10 @@ def inline_search(update: Update, context: CallbackContext):
     logger.info(f'Inline Search: {update}')
 
     # Loggin to Database
-    user_raw = update.inline_query.from_user
-    user = User.parse_raw(user_raw)
-    log = Log(method='inline_search', user=user)
-    db.logs.insert_one(log.dict()) 
+    user = update.inline_query.from_user
+    user_model = User.parse_raw(user.to_dict())
+    log = Log(method='inline_search', user=user_model)
+    db.logs.insert_one(log.dict())
 
     query = update.inline_query.query
     if not query:
@@ -86,10 +86,10 @@ def callback_query(update: Update, context: CallbackContext):
     logger.info(f'Callback Query: {update}')
     
     # Loggin to Database
-    user_raw = update.callback_query.from_user
-    user = User.parse_raw(user_raw)
-    log = Log(method='callback_query', user=user)
-    db.logs.insert_one(log.dict()) 
+    user = update.callback_query.from_user
+    user_model = User.parse_raw(user.to_dict())
+    log = Log(method='callback_query', user=user_model)
+    db.logs.insert_one(log.dict())
 
     query = update.callback_query
     if not query or not query.data:
